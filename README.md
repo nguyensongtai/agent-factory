@@ -124,9 +124,17 @@ Nếu thật sự cần, hãy dùng SSH tunnel:
 ssh -L 4317:127.0.0.1:4317 <máy-chạy-xưởng>
 ```
 
+Rồi mở http://127.0.0.1:4317 trên máy của bạn.
+
+**Trang báo `Forbidden host` (403)**
+Xưởng chỉ trả lời khi địa chỉ trên thanh URL là `127.0.0.1`, `localhost` hoặc `[::1]`. Mở bằng IP mạng LAN hay
+tên miền khác sẽ bị chặn (xem mục bên dưới). Hãy dùng một trong ba địa chỉ trên, hoặc SSH tunnel như ở trên.
+
 ## Dữ liệu và quyền riêng tư
 
 - Server chỉ **đọc** `~/.claude/projects/**/*.jsonl`, và chỉ đọc phần mới ghi thêm mỗi lần.
+- Server chỉ nghe `127.0.0.1` và từ chối mọi request có Host khác `127.0.0.1` / `localhost` / `[::1]`. Nhờ vậy một
+  trang web lạ không thể dùng DNS rebinding để đọc dữ liệu xưởng qua trình duyệt của bạn.
 - Quyền của agent đọc từ `settings.json`. Với MCP server chỉ lấy tên; lệnh, biến môi trường và token không bao giờ rời server.
 - Nhiệm vụ tự tạo nằm trong `.data/missions.json` (đã git-ignore). Xưởng không tự chạy agent: “Chép lệnh” chỉ chép
   lệnh `claude` để bạn tự dán vào terminal.
@@ -138,3 +146,7 @@ ssh -L 4317:127.0.0.1:4317 <máy-chạy-xưởng>
 tìm đường và cấu trúc thư mục.
 
 Cách nhân vật di chuyển học theo [pixel-agents](https://github.com/pixel-agents-hq/pixel-agents) (MIT); code được viết lại từ đầu.
+
+## Giấy phép
+
+[MIT](LICENSE).
