@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Xưởng Agent
 
-## Getting Started
+Trung tâm điều hành các phiên [Claude Code](https://claude.com/claude-code) chạy trên máy của bạn, giao diện pixel-art
+và sci-fi. Mỗi phiên là một agent đi lại giữa 8 khu của nhà máy theo công cụ nó đang dùng. Bên cạnh bản đồ là
+dashboard (token, chi phí ước tính, độ trễ, lỗi), quản lý agent, Mission Control và trang giám sát.
 
-First, run the development server:
+Ứng dụng **chỉ đọc** transcript Claude Code trên chính máy đang chạy nó. Không cần tài khoản, API key hay cơ sở dữ
+liệu, và không gửi dữ liệu đi đâu.
+
+## Yêu cầu
+
+| | |
+|---|---|
+| Node.js | **≥ 20.9** (khuyên dùng 22 LTS, có sẵn file `.nvmrc`) |
+| npm | đi kèm Node |
+| Claude Code | đã chạy ít nhất một lần trên máy này, để có transcript trong `~/.claude/projects` |
+| Hệ điều hành | macOS, Linux hoặc Windows |
+
+Kiểm tra nhanh:
+
+```bash
+node -v
+```
+
+```bash
+ls ~/.claude/projects
+```
+
+## Cài đặt và chạy
+
+```bash
+git clone https://github.com/nguyensongtai/agent-factory.git
+```
+
+```bash
+cd agent-factory
+```
+
+Nếu dùng [nvm](https://github.com/nvm-sh/nvm), chạy lệnh này để chọn đúng phiên bản Node:
+
+```bash
+nvm use
+```
+
+```bash
+npm ci
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở **http://127.0.0.1:4317**. Phiên Claude Code nào có hoạt động trong 3 giờ gần nhất sẽ hiện trên bản đồ. Mở một
+phiên Claude Code ở terminal khác để thấy agent xuất hiện và đi lại.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Chạy bản production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Bản production nhẹ và nhanh hơn, phù hợp khi muốn để dashboard chạy suốt.
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Server vẫn ở http://127.0.0.1:4317.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Cấu hình (không bắt buộc)
 
-## Deploy on Vercel
+Mặc định không cần cấu hình gì. Muốn đổi thì chép file mẫu rồi bỏ comment dòng cần dùng:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+cp .env.example .env.local
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Biến | Mặc định | Ý nghĩa |
+|---|---|---|
+| `CLAUDE_PROJECTS_DIR` | `~/.claude/projects` | Thư mục transcript của Claude Code |
+| `FACTORY_WINDOW_HOURS` | `3` | Chỉ hiện phiên có hoạt động trong N giờ qua |
+| `FACTORY_DATA_DIR` | `./.data` | Nơi lưu nhiệm vụ tạo trong Mission Control |
+
+Sửa `.env.local` xong thì khởi động lại server.
+
+## Các lệnh
+
+| Lệnh | Việc |
+|---|---|
+| `npm run dev` | Chạy bản phát triển, tự tải lại khi sửa code |
+| `npm run build` / `npm start` | Build và chạy bản production |
+| `npm run typecheck` | Sinh kiểu cho route rồi kiểm tra TypeScript |
+| `npm run lint` | ESLint |
+| `npm run icons` | Vẽ lại favicon, apple icon và icon PWA từ hình pixel trong `scripts/generate-icons.mjs` |
+
+## Xử lý sự cố
+
+**Khung vàng “Chưa thấy thư mục transcript của Claude Code”**
+Máy này chưa từng chạy Claude Code, hoặc transcript nằm chỗ khác. Chạy Claude Code một lần, hoặc đặt
+`CLAUDE_PROJECTS_DIR` trong `.env.local`. Trên Windows, đường dẫn mặc định là `%USERPROFILE%\.claude\projects`.
+
+**Bản đồ trống dù đang dùng Claude Code**
+- Chỉ phiên có hoạt động trong `FACTORY_WINDOW_HOURS` giờ gần nhất mới hiện.
+- Phiên chạy bằng SDK đã xong bị ẩn mặc định; bấm “Hiện N phiên SDK đã xong” ở góc trên.
+
+**Port 4317 đã có chương trình khác dùng**
+Chạy ở port khác:
+
+```bash
+npx next dev -H 127.0.0.1 -p 4400
+```
+
+**`npm ci` báo lỗi phiên bản Node (`EBADENGINE`) hoặc build lỗi cú pháp lạ**
+Node quá cũ. Cài Node 20.9 trở lên (`nvm install` sẽ đọc `.nvmrc`).
+
+**`npm run typecheck` báo thiếu `RouteContext` / `LayoutProps`**
+Các kiểu này do Next.js sinh ra. Hãy chạy qua `npm run typecheck`, vì lệnh này sinh kiểu trước; đừng gọi `tsc` trực tiếp.
+
+**Muốn xem từ máy khác trong mạng LAN**
+Server cố ý chỉ nghe `127.0.0.1`: transcript chứa code, prompt và đường dẫn trên máy bạn. Đừng mở ra mạng ngoài.
+Nếu thật sự cần, hãy dùng SSH tunnel:
+
+```bash
+ssh -L 4317:127.0.0.1:4317 <máy-chạy-xưởng>
+```
+
+## Dữ liệu và quyền riêng tư
+
+- Server chỉ **đọc** `~/.claude/projects/**/*.jsonl`, và chỉ đọc phần mới ghi thêm mỗi lần.
+- Quyền của agent đọc từ `settings.json`. Với MCP server chỉ lấy tên; lệnh, biến môi trường và token không bao giờ rời server.
+- Nhiệm vụ tự tạo nằm trong `.data/missions.json` (đã git-ignore). Xưởng không tự chạy agent: “Chép lệnh” chỉ chép
+  lệnh `claude` để bạn tự dán vào terminal.
+- Chi phí hiển thị là **ước tính theo giá API công khai**. Dùng Claude Code bằng gói đăng ký thì không bị tính tiền theo token.
+
+## Tìm hiểu thêm
+
+[docs/architecture.md](docs/architecture.md) giải thích các trang, nguồn của từng chỉ số, 8 khu nhà máy, cách agent
+tìm đường và cấu trúc thư mục.
+
+Cách nhân vật di chuyển học theo [pixel-agents](https://github.com/pixel-agents-hq/pixel-agents) (MIT); code được viết lại từ đầu.

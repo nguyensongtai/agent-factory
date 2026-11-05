@@ -2,16 +2,22 @@
   "name": "agent-factory",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 127.0.0.1 -p 4317",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -H 127.0.0.1 -p 4317",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "next": "16.4.5",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
