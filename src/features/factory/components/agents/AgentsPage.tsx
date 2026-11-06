@@ -57,7 +57,7 @@ export default function AgentsPage() {
     <>
       <div className="flex flex-wrap items-end gap-3">
         <div className="mr-auto">
-          <h1 className="font-display text-2xl font-bold text-slate-50">Agent</h1>
+          <h1 className="font-display text-2xl font-bold text-slate-50">Ninja</h1>
           <p className="text-sm text-slate-400">Mỗi phiên Claude Code là một agent; subagent nằm trong chi tiết của phiên tạo ra nó.</p>
         </div>
         <input

@@ -1,6 +1,20 @@
 import type { StationId } from '../domain/types'
 
-import { TILE, WALL_H, coreRect, doorTiles, type FloorLayout, type Tile } from './layout'
+import {
+  BACKDROP_H,
+  DESK_HALF_W,
+  DESK_ROOMS,
+  OUTER,
+  TILE,
+  WALL_H,
+  coreRect,
+  doorTiles,
+  slotCount,
+  slotTile,
+  type FloorLayout,
+  type RoomRect,
+  type Tile,
+} from './layout'
 
 const HALLWAY = -1
 const BLOCKED = -2
@@ -20,6 +34,20 @@ export type WalkGrid = {
 
 const edge = (a: number, b: number) => (a < b ? a * 65536 + b : b * 65536 + a)
 
+// Desks block the tile row just behind each seat, so walkers go round them instead of over them.
+function deskTiles(room: RoomRect): Set<number> {
+  const tiles = new Set<number>()
+  if (!DESK_ROOMS.has(room.station.id)) return tiles
+  for (let i = 0; i < slotCount(room); i++) {
+    const seat = slotTile(room, i)
+    const from = Math.floor((seat.col * TILE + TILE / 2 - DESK_HALF_W) / TILE)
+    const to = Math.floor((seat.col * TILE + TILE / 2 + DESK_HALF_W - 1) / TILE)
+    for (let c = from; c <= to; c++) tiles.add((seat.row - 1) * 65536 + c)
+  }
+
+  return tiles
+}
+
 export function buildGrid(layout: FloorLayout): WalkGrid {
   const cols = layout.width / TILE
   const rows = layout.height / TILE
@@ -32,12 +60,13 @@ export function buildGrid(layout: FloorLayout): WalkGrid {
     const r0 = room.y / TILE
     const wallRows = WALL_H / TILE
     const core = room.station.id === 'orchestration' ? coreRect(room) : null
+    const desks = deskTiles(room)
     const onCore = (c: number, r: number) =>
       core !== null && c * TILE >= core.x && c * TILE < core.x + core.w && r * TILE >= core.y && r * TILE < core.y + core.h
     const floor: Tile[] = []
     for (let r = r0; r < r0 + room.h / TILE; r++) {
       for (let c = c0; c < c0 + room.w / TILE; c++) {
-        const isWall = r < r0 + wallRows || onCore(c, r)
+        const isWall = r < r0 + wallRows || onCore(c, r) || desks.has(r * 65536 + c)
         area[r * cols + c] = isWall ? BLOCKED : index
         if (!isWall) floor.push({ col: c, row: r })
       }
@@ -48,6 +77,25 @@ export function buildGrid(layout: FloorLayout): WalkGrid {
       doors.add(edge(inside, inside + cols))
     }
   })
+
+  // The mountains and the outer trees are scenery; one tile of path is left along the forest edge.
+  const forest = (OUTER - TILE) / TILE
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const scenery = r * TILE < BACKDROP_H || c < forest || c >= cols - forest || r >= rows - forest
+      if (scenery && area[r * cols + c] === HALLWAY) area[r * cols + c] = BLOCKED
+    }
+  }
+  // The stream can only be crossed on its bridges.
+  const stream = layout.stream
+  if (stream) {
+    for (let c = Math.floor((stream.x - TILE) / TILE); c < Math.ceil((stream.x + TILE) / TILE); c++) {
+      for (let r = Math.floor(stream.top / TILE); r * TILE < stream.bottom; r++) {
+        const onBridge = stream.bridges.some((b) => r * TILE >= b.y && r * TILE < b.y + b.h)
+        if (!onBridge && area[r * cols + c] === HALLWAY) area[r * cols + c] = BLOCKED
+      }
+    }
+  }
 
   return { cols, rows, area, doors, floors }
 }

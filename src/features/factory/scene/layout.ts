@@ -1,19 +1,22 @@
 import { STATIONS, STATION_BY_ID, type Station } from '../domain/stations'
 import type { StationId } from '../domain/types'
 
-// Everything is aligned to an 8px walk grid: rooms, hallways (GAP) and seats sit on whole tiles.
+// Everything is aligned to an 8px walk grid: halls, paths (GAP) and seats sit on whole tiles.
+// The village sits in a forest clearing: a mountain backdrop above, a band of forest (OUTER) around the rest.
 export const TILE = 8
 export const ROOM_W = 160
-const ROOM_H = 144
+const ROOM_H = 176
 export const WALL_H = 48
-const GAP = 16
-const SLOT_W = 48
-// Resource-center seats are wider so resting agents' names have room to be read.
+export const GAP = 16
+export const BACKDROP_H = 72
+export const OUTER = 24
+// Seats are sized for the double-size ninjas: two per row in a normal hall.
+const SLOT_W = 72
 const WIDE_SLOT_W = 72
-const SLOT_H = 48
-const FIRST_ROW = 28 // feet offset below the wall: centre of the 4th floor tile
-// The orchestration center takes two cells of the second row, with the AI core in the middle of its floor.
-const CORE_ROW = 1
+const SLOT_H = 56
+const FIRST_ROW = 44 // feet offset below the wall
+// The Command Tower takes two cells of the top row, so its pagoda roofs rise into the mountains.
+const CORE_ROW = 0
 const CORE_SPAN = 2
 const CORE_HALF_W = 40
 const CORE_GAP_BOTTOM = 24
@@ -21,7 +24,9 @@ const CORE_GAP_BOTTOM = 24
 export type Tile = { col: number; row: number }
 export type Rect = { x: number; y: number; w: number; h: number }
 export type RoomRect = Rect & { station: Station }
-export type FloorLayout = { width: number; height: number; rooms: Record<StationId, RoomRect> }
+// A stream falls from the mountains down one of the paths; it can be crossed only on the bridges.
+export type Stream = { x: number; top: number; bottom: number; bridges: { y: number; h: number }[] }
+export type FloorLayout = { width: number; height: number; rooms: Record<StationId, RoomRect>; stream: Stream | null }
 
 export function slotWidth(station: StationId): number {
   return station === 'resources' ? WIDE_SLOT_W : SLOT_W
@@ -49,7 +54,7 @@ export function layoutFloor(cols: number, restingCount: number): FloorLayout {
     for (let c = 0; c < cols && cells.length < work.length; c++) if (!isCore(r, c)) cells.push({ r, c })
   }
 
-  const cellX = (c: number) => GAP + c * (ROOM_W + GAP)
+  const cellX = (c: number) => OUTER + c * (ROOM_W + GAP)
   const spanW = (n: number) => n * ROOM_W + (n - 1) * GAP
   const last = cells[cells.length - 1]
   const free = cols - 1 - last.c
@@ -59,7 +64,7 @@ export function layoutFloor(cols: number, restingCount: number): FloorLayout {
   const restH = heightFor(spanW(restCols), restingCount)
   const rowH = (r: number) => (r === restRow ? restH : ROOM_H)
   const rowY = (r: number) => {
-    let y = GAP
+    let y = BACKDROP_H + GAP
     for (let i = 0; i < r; i++) y += rowH(i) + GAP
 
     return y
@@ -86,7 +91,18 @@ export function layoutFloor(cols: number, restingCount: number): FloorLayout {
     h: restH,
   }
 
-  return { width: GAP + cols * (ROOM_W + GAP), height: rowY(restRow + 1), rooms }
+  // The stream runs down the path left of the last column, from the falls to the row above the shrine.
+  const stream: Stream | null =
+    cols >= 4
+      ? {
+          x: cellX(cols - 1) - GAP / 2,
+          top: BACKDROP_H,
+          bottom: rowY(restRow) - 2,
+          bridges: Array.from({ length: restRow }, (_, r) => ({ y: rowY(r) + rowH(r), h: GAP })),
+        }
+      : null
+
+  return { width: OUTER * 2 + cols * ROOM_W + (cols - 1) * GAP, height: rowY(restRow + 1) - GAP + OUTER, rooms, stream }
 }
 
 // The AI core platform in the middle of the orchestration floor; agents walk around it.
@@ -118,12 +134,32 @@ function coreSeat(room: RoomRect, index: number): Tile {
   }
 }
 
+function slotGrid(room: RoomRect): { cols: number; rows: number } {
+  return {
+    cols: perRow(room.w, slotWidth(room.station.id)),
+    rows: Math.max(1, Math.floor((room.h - WALL_H - FIRST_ROW - 20) / SLOT_H) + 1),
+  }
+}
+
+// Seats that have their own piece of furniture (desk or cushion); extra occupants stand nearby.
+export function slotCount(room: RoomRect): number {
+  if (room.station.id === 'orchestration') return 0
+  const { cols, rows } = slotGrid(room)
+
+  return cols * rows
+}
+
+// Rooms where agents sit at a low desk with a monitor while they work.
+export const DESK_ROOMS = new Set<StationId>(['warehouse', 'devlab', 'browser', 'mcp'])
+export const DESK_HALF_W = 20
+// The desk top sits this far above the seated agent's feet tile.
+export const DESK_RISE = 12
+
 // Tile under the feet of the n-th occupant of a room, seats centred in the room.
 export function slotTile(room: RoomRect, index: number): Tile {
   if (room.station.id === 'orchestration') return coreSeat(room, index)
   const slotW = slotWidth(room.station.id)
-  const cols = perRow(room.w, slotW)
-  const rows = Math.max(1, Math.floor((room.h - WALL_H - FIRST_ROW - 20) / SLOT_H) + 1)
+  const { cols, rows } = slotGrid(room)
   const row = Math.floor(index / cols) % rows
   const col = index % cols
   const overflow = Math.floor(index / (cols * rows)) * TILE

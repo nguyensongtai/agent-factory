@@ -10,7 +10,7 @@ import { useFactory } from '../../context/FactoryProvider'
 
 const NAV = [
   { href: '/', label: 'Tổng quan', icon: '🏭' },
-  { href: '/agents', label: 'Agent', icon: '🤖' },
+  { href: '/agents', label: 'Ninja', icon: '🥷' },
   { href: '/missions', label: 'Nhiệm vụ', icon: '🎯' },
   { href: '/monitoring', label: 'Giám sát', icon: '📡' },
 ] as const
@@ -31,7 +31,7 @@ export default function ConsoleHeader() {
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-6 gap-y-2 px-3 py-2 md:px-6">
         <Link href="/" className="flex items-center gap-2.5">
           <Image src="/brand.svg" alt="" width={28} height={28} priority className="[image-rendering:pixelated]" />
-          <span className="font-display text-lg font-bold uppercase tracking-[0.14em] text-cyan-50">Xưởng Agent</span>
+          <span className="font-display text-lg font-bold uppercase tracking-[0.14em] text-cyan-50">Làng Ninja AI</span>
         </Link>
 
         <nav aria-label="Trang" className="order-last -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">

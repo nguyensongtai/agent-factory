@@ -3,7 +3,7 @@ import type { AgentStatus, StationId } from './types'
 export type Station = {
   id: StationId
   label: string
-  // English zone name, shown as a subtitle.
+  // What the zone is for, shown as a subtitle.
   code: string
   icon: string
   // What an agent that spends most of its calls here is doing.
@@ -16,72 +16,72 @@ export type Station = {
 export const STATIONS: Station[] = [
   {
     id: 'warehouse',
-    label: 'Kho dữ liệu',
-    code: 'Data Warehouse',
-    icon: '🗄️',
+    label: 'Scroll Archive',
+    code: 'Thư khố · đọc và tìm file',
+    icon: '📜',
     role: 'Phân tích dữ liệu',
     tools: 'Read, Grep, Glob',
     accent: '#60a5fa',
   },
   {
     id: 'devlab',
-    label: 'Phòng phát triển',
-    code: 'Development Lab',
-    icon: '🛠️',
+    label: 'Coding Dojo',
+    code: 'Võ đường lập trình',
+    icon: '💻',
     role: 'Lập trình',
     tools: 'Edit, Write, Bash',
     accent: '#fb923c',
   },
   {
     id: 'testlab',
-    label: 'Phòng kiểm thử',
-    code: 'Testing Lab',
-    icon: '🧪',
+    label: 'Testing Arena',
+    code: 'Đấu trường kiểm thử',
+    icon: '🎯',
     role: 'Kiểm thử',
     tools: 'Bash chạy test, lint, typecheck, build',
     accent: '#4ade80',
   },
   {
     id: 'browser',
-    label: 'Trạm trình duyệt',
-    code: 'Browser Station',
-    icon: '🌐',
+    label: 'Shadow Realm',
+    code: 'Tự động hoá trình duyệt',
+    icon: '🌘',
     role: 'Tự động hoá web',
     tools: 'WebFetch, WebSearch, Chrome, Browser',
     accent: '#2dd4bf',
   },
   {
     id: 'mcp',
-    label: 'Trung tâm MCP',
-    code: 'MCP Hub',
-    icon: '🔌',
+    label: 'Ninja Network',
+    code: 'MCP và các kết nối',
+    icon: '🕸️',
     role: 'Tích hợp MCP',
     tools: 'Các MCP server khác',
     accent: '#a78bfa',
   },
   {
     id: 'orchestration',
-    label: 'Trung tâm điều phối',
-    code: 'Orchestration Center',
-    icon: '🧠',
+    label: 'Command Tower',
+    code: 'Tháp điều phối AI',
+    icon: '🏯',
     role: 'Điều phối',
     tools: 'Đang suy nghĩ, Agent, SendMessage, Workflow, TodoWrite',
     accent: '#22d3ee',
   },
   {
     id: 'resources',
-    label: 'Trung tâm tài nguyên',
-    code: 'Resource Center',
-    icon: '🔋',
+    label: 'Chakra Shrine',
+    code: 'Model, token và tài nguyên',
+    icon: '⛩️',
     role: 'Dùng skill',
-    tools: 'Skill, ToolSearch · agent rảnh nạp năng lượng ở đây',
+    tools: 'Skill, ToolSearch · ninja rảnh nghỉ ở đây',
     accent: '#facc15',
   },
   {
     id: 'approval',
-    label: 'Phòng phê duyệt',
-    code: 'Approval Room',
-    icon: '🛡️',
+    label: 'Council Chamber',
+    code: 'Hội đồng phê duyệt',
+    icon: '⚖️',
     role: 'Chờ duyệt',
     tools: 'AskUserQuestion, ExitPlanMode',
     accent: '#fb7185',
@@ -132,11 +132,22 @@ export function stationForStatus(status: AgentStatus, current: { station: Statio
   return current.station
 }
 
-// The zone holding most of an agent's calls names its role.
-export function roleOf(zones: Partial<Record<StationId, number>>): string {
+function mainZone(zones: Partial<Record<StationId, number>>): StationId | null {
   const top = Object.entries(zones).sort((a, b) => b[1] - a[1])[0]
 
-  return top ? STATION_BY_ID[top[0] as StationId].role : 'Mới vào xưởng'
+  return top ? (top[0] as StationId) : null
+}
+
+// The zone holding most of an agent's calls names its role.
+export function roleOf(zones: Partial<Record<StationId, number>>): string {
+  const top = mainZone(zones)
+
+  return top ? STATION_BY_ID[top].role : 'Mới vào làng'
+}
+
+// The clan an agent's ninja belongs to (its outfit colour); newcomers start at the core.
+export function clanOf(zones: Partial<Record<StationId, number>>): StationId {
+  return mainZone(zones) ?? 'orchestration'
 }
 
 export const STATUS_LABEL: Record<AgentStatus, string> = {

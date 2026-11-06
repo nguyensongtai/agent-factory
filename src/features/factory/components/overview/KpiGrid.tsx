@@ -15,9 +15,9 @@ export default function KpiGrid({ summary, agents, latency }: Props) {
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      <StatCard label="Agent" value={summary.sessions} sub={`+ ${summary.subagents} subagent đang chạy`} />
+      <StatCard label="Ninja" value={summary.sessions} sub={`+ ${summary.subagents} ninja học việc đang chạy`} />
 
-      <StatCard label="Đang hoạt động" value={summary.active} accent="#4ade80" sub={`trên ${summary.sessions} phiên`}>
+      <StatCard label="Ninja hoạt động" value={summary.active} accent="#4ade80" sub={`trên ${summary.sessions} phiên`}>
         <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-slate-800" aria-hidden>
           {STATUSES.map((status) => {
             const count = agents.filter((a) => a.status === status).length
@@ -52,7 +52,7 @@ export default function KpiGrid({ summary, agents, latency }: Props) {
       />
 
       <StatCard
-        label="Token · 1 giờ"
+        label="Token · chi phí AI"
         value={compact(summary.tokens)}
         accent="#facc15"
         sub={`≈ ${usd(summary.cost)} theo giá API`}

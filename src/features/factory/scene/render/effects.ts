@@ -1,7 +1,7 @@
 import type { Effect, Entity } from '../entities'
 import { isWalking } from '../movement'
 import { INK, alpha, fill, type Ctx } from './pixels'
-import { BOT_H, PERSON_H, shirtColor } from './sprites'
+import { BOT_H, PERSON_H, SCALE, clanColor } from './sprites'
 
 const LIFE_MS = 1600
 
@@ -14,21 +14,48 @@ function glyph(ctx: Ctx, rows: string[], x: number, y: number, color: string) {
   })
 }
 
-// Short-lived bursts: a green tick for finished work, a red "!" for a failed tool, a ring for arrivals.
+// Offsets of the puffs in a smoke burst, with their starting radius.
+const PUFFS = [
+  [0, -6, 5],
+  [-6, -3, 4],
+  [6, -4, 4],
+  [-3, -12, 4],
+  [4, -13, 3],
+  [0, -1, 4],
+]
+const SMOKE_MS = 900
+
+// Ninja-style arrival and exit: a cloud of grey puffs that swells and thins out.
+function drawSmoke(ctx: Ctx, fx: Effect, t: number) {
+  const age = (t - fx.born) / SMOKE_MS
+  if (age < 0 || age > 1) return
+  const spread = 0.7 + age * 0.8
+  PUFFS.forEach(([dx, dy, r], i) => {
+    ctx.fillStyle = alpha(i % 2 === 0 ? '#e2e8f0' : '#94a3b8', (1 - age) * 0.85)
+    ctx.beginPath()
+    ctx.arc(fx.x + dx * spread, fx.y + dy * spread, r * (1 + age), 0, Math.PI * 2)
+    ctx.fill()
+  })
+}
+
+// Short-lived bursts: a green tick for finished work, a red "!" for a failed tool, smoke for arrivals and exits.
 export function drawEffects(ctx: Ctx, effects: Effect[], t: number) {
   for (const fx of effects) {
+    if (fx.kind === 'smoke') {
+      drawSmoke(ctx, fx, t)
+      continue
+    }
     const age = (t - fx.born) / LIFE_MS
     if (age < 0 || age > 1) continue
     const fade = 1 - age
     const rise = Math.round(age * 14)
-    const color = fx.kind === 'done' ? '#4ade80' : fx.kind === 'error' ? '#ef4444' : '#22d3ee'
+    const color = fx.kind === 'done' ? '#4ade80' : '#ef4444'
     ctx.strokeStyle = alpha(color, fade * 0.8)
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.ellipse(fx.x, fx.y, 6 + age * 14, 2 + age * 5, 0, 0, Math.PI * 2)
     ctx.stroke()
-    if (fx.kind === 'spawn') continue
-    const top = Math.round(fx.y - 34 - rise)
+    const top = Math.round(fx.y - PERSON_H * SCALE - 10 - rise)
     fill(ctx, alpha(INK, fade * 0.9), fx.x - 6, top - 2, 13, 11)
     if (fx.kind === 'done') glyph(ctx, CHECK, Math.round(fx.x - 3), top, alpha(color, fade))
     else glyph(ctx, BANG, Math.round(fx.x - 1) + (Math.floor(t / 50) % 2), top, alpha(color, fade))
@@ -42,14 +69,14 @@ export function drawLinks(ctx: Ctx, entities: Map<string, Entity>, t: number) {
     const owner = entities.get(bot.ownerId)
     if (!owner) continue
     const ax = owner.x
-    const ay = owner.y - PERSON_H + 4
+    const ay = owner.y - PERSON_H * SCALE + 8
     const bx = bot.x
-    const by = bot.y - BOT_H + 3
+    const by = bot.y - BOT_H * SCALE + 6
     const dist = Math.hypot(bx - ax, by - ay)
     if (dist < 12) continue
     const mx = (ax + bx) / 2
     const my = Math.min(ay, by) - Math.min(40, dist * 0.3)
-    const color = shirtColor(bot.project)
+    const color = clanColor(bot.clan)
     ctx.strokeStyle = alpha(color, isWalking(bot) ? 0.35 : 0.55)
     ctx.lineWidth = 1
     ctx.setLineDash([3, 3])

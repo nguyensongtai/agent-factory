@@ -6,10 +6,10 @@ import { useFactory } from '../../context/FactoryProvider'
 import FloorView from './FloorView'
 
 const LEGEND = [
-  { color: '#4ade80', label: 'Phòng có người làm' },
+  { color: '#4ade80', label: 'Khu có ninja' },
   { color: '#fb7185', label: 'Chờ duyệt' },
   { color: '#ef4444', label: 'Vừa lỗi' },
-  { color: '#334155', label: 'Phòng trống (tắt đèn)' },
+  { color: '#334155', label: 'Khu trống (tắt đèn)' },
 ]
 
 export default function FactoryMap() {
@@ -19,7 +19,7 @@ export default function FactoryMap() {
     <section className="holo-frame flex min-w-0 flex-col gap-2 p-2 md:p-3" aria-labelledby="map-title">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1">
         <h2 id="map-title" className="section-title text-cyan-200">
-          Sàn nhà máy
+          Làng Ninja
         </h2>
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
           {LEGEND.map((item) => (

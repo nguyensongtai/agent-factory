@@ -39,7 +39,7 @@ export function useFactorySnapshot(): FactoryFeed {
         }
       } catch (err) {
         console.error('[factory] poll failed', err)
-        if (!cancelled) setError('Mất kết nối tới server xưởng')
+        if (!cancelled) setError('Mất kết nối tới server làng')
       }
       // Pause while the tab is hidden; resume on the next visibility change.
       if (!cancelled && document.visibilityState === 'visible') timer = setTimeout(load, POLL_MS)

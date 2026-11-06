@@ -2,10 +2,11 @@ import { toolLabel } from '../../domain/format'
 import { occupantsOf } from '../../domain/metrics'
 import { STATION_BY_ID } from '../../domain/stations'
 import type { AgentSnapshot, StationId } from '../../domain/types'
+import RankBadge from '../common/RankBadge'
 import StatusBadge from '../common/StatusBadge'
 
 type Props = {
-  hover: { entityId: string | null; roomId: StationId | null; x: number; y: number }
+  hover: { entityId: string | null; roomId: StationId | null; board: boolean; x: number; y: number }
   agents: AgentSnapshot[]
 }
 
@@ -36,9 +37,10 @@ export default function MapTooltip({ hover, agents }: Props) {
     const current = sub ? sub.current : agent.current
     body = (
       <>
-        <p className="font-semibold text-slate-50">{sub ? `🤖 ${sub.agentType}` : agent.title}</p>
-        {sub && <p className="text-slate-400">trợ lý của {agent.name}</p>}
-        <div className="mt-1 flex items-center gap-2">
+        <p className="font-semibold text-slate-50">{sub ? `🥷 ${sub.agentType}` : agent.title}</p>
+        {sub && <p className="text-slate-400">ninja học việc của {agent.name}</p>}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {!sub && <RankBadge agent={agent} withRule />}
           <StatusBadge status={status} />
           <span className="text-slate-400">{STATION_BY_ID[sub?.station ?? agent.station].label}</span>
         </div>
@@ -48,6 +50,14 @@ export default function MapTooltip({ hover, agents }: Props) {
           </p>
         )}
         {!sub && agent.model && <p className="mt-1 text-slate-500">{agent.model}</p>}
+      </>
+    )
+  } else if (hover.board) {
+    body = (
+      <>
+        <p className="font-semibold text-slate-50">📋 Mission Board</p>
+        <p className="text-slate-400">Nhiệm vụ thật của các phiên đang theo dõi</p>
+        <p className="text-slate-500">Bấm để mở trang Nhiệm vụ</p>
       </>
     )
   } else if (hover.roomId) {
@@ -60,7 +70,7 @@ export default function MapTooltip({ hover, agents }: Props) {
         </p>
         <p className="text-slate-400">{station.code}</p>
         <p className="mt-1 text-slate-300">
-          {occupants.agents.length} agent · {occupants.subagents.length} subagent
+          {occupants.agents.length} ninja · {occupants.subagents.length} học việc
         </p>
         <p className="text-slate-500">Bấm để xem chi tiết</p>
       </>

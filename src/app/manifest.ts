@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Xưởng Agent',
-    short_name: 'Xưởng Agent',
+    name: 'Làng Ninja AI',
+    short_name: 'Làng Ninja',
     description: 'Theo dõi các phiên Claude Code theo thời gian thực',
     start_url: '/',
     display: 'standalone',

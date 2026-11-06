@@ -7,6 +7,7 @@ import { roleOf, STATION_BY_ID } from '../../domain/stations'
 import { useFactory } from '../../context/FactoryProvider'
 import CopyCommand from '../common/CopyCommand'
 import PixelAvatar from '../common/PixelAvatar'
+import RankBadge from '../common/RankBadge'
 import StatusBadge from '../common/StatusBadge'
 import { ExecutionHistory, Permissions, PlanList, Powers, Section, Subagents, UsageByModel } from './AgentSections'
 
@@ -32,7 +33,7 @@ export default function AgentDrawer() {
       title={
         agent && (
           <div className="flex items-start gap-3">
-            <PixelAvatar sessionId={agent.id} project={agent.project} size={44} />
+            <PixelAvatar agent={agent} size={44} />
             <div className="min-w-0">
               <h2 className="text-base font-bold leading-snug text-slate-50">{agent.title}</h2>
               <p className="truncate text-sm text-slate-400" title={agent.cwd}>
@@ -40,6 +41,7 @@ export default function AgentDrawer() {
                 {agent.gitBranch ? ` · ${agent.gitBranch}` : ''}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <RankBadge agent={agent} withRule />
                 <StatusBadge status={agent.status} />
                 <span>
                   {STATION_BY_ID[agent.station].icon} {STATION_BY_ID[agent.station].label}

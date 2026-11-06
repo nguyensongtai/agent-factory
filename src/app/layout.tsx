@@ -23,9 +23,9 @@ const pixel = VT323({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'Xưởng Agent', template: '%s · Xưởng Agent' },
+  title: { default: 'Làng Ninja AI', template: '%s · Làng Ninja AI' },
   description: 'Theo dõi các phiên Claude Code và siêu năng lực của chúng theo thời gian thực',
-  applicationName: 'Xưởng Agent',
+  applicationName: 'Làng Ninja AI',
 }
 
 export const viewport: Viewport = {

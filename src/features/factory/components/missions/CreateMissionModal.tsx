@@ -88,7 +88,7 @@ export default function CreateMissionModal({ open, agents, onClose, onCreate }: 
           </select>
         </label>
         <p className="text-xs text-slate-500">
-          Xưởng chỉ quan sát, không tự chạy agent. Sau khi tạo, bấm “Chép lệnh” trên thẻ rồi dán vào terminal để agent bắt đầu.
+          Làng chỉ quan sát, không tự chạy agent. Sau khi tạo, bấm “Chép lệnh” trên thẻ rồi dán vào terminal để agent bắt đầu.
         </p>
         {error && (
           <p role="alert" className="text-sm text-rose-300">

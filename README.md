@@ -1,8 +1,9 @@
-# Xưởng Agent
+# Làng Ninja AI
 
 Trung tâm điều hành các phiên [Claude Code](https://claude.com/claude-code) chạy trên máy của bạn, giao diện pixel-art
-và sci-fi. Mỗi phiên là một agent đi lại giữa 8 khu của nhà máy theo công cụ nó đang dùng. Bên cạnh bản đồ là
-dashboard (token, chi phí ước tính, độ trễ, lỗi), quản lý agent, Mission Control và trang giám sát.
+làng ninja ban đêm pha cyberpunk. Mỗi phiên là một ninja (có cấp bậc tính từ dữ liệu thật) đi lại giữa 8 khu của làng
+theo công cụ nó đang dùng. Bên cạnh bản đồ là dashboard (token, chi phí ước tính, độ trễ, lỗi), quản lý ninja,
+Mission Board và trang giám sát.
 
 Ứng dụng **chỉ đọc** transcript Claude Code trên chính máy đang chạy nó. Không cần tài khoản, API key hay cơ sở dữ
 liệu, và không gửi dữ liệu đi đâu.
@@ -121,28 +122,28 @@ Server cố ý chỉ nghe `127.0.0.1`: transcript chứa code, prompt và đư�
 Nếu thật sự cần, hãy dùng SSH tunnel:
 
 ```bash
-ssh -L 4317:127.0.0.1:4317 <máy-chạy-xưởng>
+ssh -L 4317:127.0.0.1:4317 <máy-chạy-làng>
 ```
 
 Rồi mở http://127.0.0.1:4317 trên máy của bạn.
 
 **Trang báo `Forbidden host` (403)**
-Xưởng chỉ trả lời khi địa chỉ trên thanh URL là `127.0.0.1`, `localhost` hoặc `[::1]`. Mở bằng IP mạng LAN hay
+Làng chỉ trả lời khi địa chỉ trên thanh URL là `127.0.0.1`, `localhost` hoặc `[::1]`. Mở bằng IP mạng LAN hay
 tên miền khác sẽ bị chặn (xem mục bên dưới). Hãy dùng một trong ba địa chỉ trên, hoặc SSH tunnel như ở trên.
 
 ## Dữ liệu và quyền riêng tư
 
 - Server chỉ **đọc** `~/.claude/projects/**/*.jsonl`, và chỉ đọc phần mới ghi thêm mỗi lần.
 - Server chỉ nghe `127.0.0.1` và từ chối mọi request có Host khác `127.0.0.1` / `localhost` / `[::1]`. Nhờ vậy một
-  trang web lạ không thể dùng DNS rebinding để đọc dữ liệu xưởng qua trình duyệt của bạn.
+  trang web lạ không thể dùng DNS rebinding để đọc dữ liệu làng qua trình duyệt của bạn.
 - Quyền của agent đọc từ `settings.json`. Với MCP server chỉ lấy tên; lệnh, biến môi trường và token không bao giờ rời server.
-- Nhiệm vụ tự tạo nằm trong `.data/missions.json` (đã git-ignore). Xưởng không tự chạy agent: “Chép lệnh” chỉ chép
+- Nhiệm vụ tự tạo nằm trong `.data/missions.json` (đã git-ignore). Làng không tự chạy agent: “Chép lệnh” chỉ chép
   lệnh `claude` để bạn tự dán vào terminal.
 - Chi phí hiển thị là **ước tính theo giá API công khai**. Dùng Claude Code bằng gói đăng ký thì không bị tính tiền theo token.
 
 ## Tìm hiểu thêm
 
-[docs/architecture.md](docs/architecture.md) giải thích các trang, nguồn của từng chỉ số, 8 khu nhà máy, cách agent
+[docs/architecture.md](docs/architecture.md) giải thích các trang, nguồn của từng chỉ số, 8 khu của làng, cách ninja
 tìm đường và cấu trúc thư mục.
 
 Cách nhân vật di chuyển học theo [pixel-agents](https://github.com/pixel-agents-hq/pixel-agents) (MIT); code được viết lại từ đầu.

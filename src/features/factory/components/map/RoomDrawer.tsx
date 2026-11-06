@@ -50,7 +50,7 @@ export default function RoomDrawer() {
               Đang ở đây ({occupants.agents.length + occupants.subagents.length})
             </h3>
             {occupants.agents.length + occupants.subagents.length === 0 ? (
-              <EmptyState icon="💡" title="Phòng đang tắt đèn" hint="Đèn sáng khi có agent dùng công cụ của phòng này." />
+              <EmptyState icon="💡" title="Khu đang tắt đèn" hint="Đèn sáng khi có ninja dùng công cụ của khu này." />
             ) : (
               <ul className="flex flex-col gap-1">
                 {occupants.agents.map((agent) => (
@@ -60,7 +60,7 @@ export default function RoomDrawer() {
                       onClick={() => openAgent(agent.id)}
                       className="flex w-full cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-white/5"
                     >
-                      <PixelAvatar sessionId={agent.id} project={agent.project} size={32} />
+                      <PixelAvatar agent={agent} size={32} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-slate-100">{agent.title}</span>
                         <span className="block truncate text-xs text-slate-400">

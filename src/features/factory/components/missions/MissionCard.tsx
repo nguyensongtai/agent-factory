@@ -38,11 +38,11 @@ export default function MissionCard({ mission, agent, now, onOpen, actions }: Pr
         <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
           {agent ? (
             <>
-              <PixelAvatar sessionId={agent.id} project={agent.project} size={20} />
+              <PixelAvatar agent={agent} size={20} />
               <span className="min-w-0 flex-1 truncate">{agent.name}</span>
             </>
           ) : (
-            <span className="flex-1 text-slate-500">{mission.agentId ? 'agent đã rời xưởng' : 'chưa giao'}</span>
+            <span className="flex-1 text-slate-500">{mission.agentId ? 'ninja đã rời làng' : 'chưa giao'}</span>
           )}
           {mission.toolCount > 0 && <span title="Lượt gọi tool">🔧 {mission.toolCount}</span>}
           {mission.errorCount > 0 && <span className="text-rose-300" title="Lỗi">⚠ {mission.errorCount}</span>}

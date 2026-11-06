@@ -1,4 +1,4 @@
-import { coreRect, type RoomRect } from '../layout'
+import { coreRect, type Rect, type RoomRect } from '../layout'
 import { HOLO, INK, alpha, box, fill, pixelSprite, type Ctx } from './pixels'
 
 // Holographic overseer floating above the data core.
@@ -21,7 +21,7 @@ const BUST = [
   'hHHHHHHHHHHHHHHh',
 ]
 
-const LOCK = ['..LLL..', '.L...L.', '.L...L.', 'LLLLLLL', 'LLLkLLL', 'LLLkLLL', 'LLLLLLL']
+const CRYSTAL = ['..C..', '.CcC.', 'CcLcC', 'CcccC', '.CcC.', '..C..']
 
 function hologram(ctx: Ctx, cx: number, top: number, t: number) {
   const bust = pixelSprite('core:bust', BUST, { H: '#67e8f9', h: '#0e7490', E: '#ecfeff' })
@@ -66,36 +66,51 @@ function rings(ctx: Ctx, cx: number, cy: number, t: number) {
   }
 }
 
-function datacore(ctx: Ctx, cx: number, top: number, t: number, busy: boolean) {
-  box(ctx, '#0b1a33', cx - 15, top, 30, 30, '#0e7490')
-  fill(ctx, '#12284a', cx - 13, top + 2, 26, 3)
-  for (let i = 0; i < 5; i++) {
-    const on = (Math.floor(t / 180) + i * 2) % 5 < (busy ? 3 : 1)
-    fill(ctx, on ? '#4ade80' : '#14335a', cx - 12 + i * 5, top + 25, 3, 2)
-  }
-  const lock = pixelSprite('core:lock', LOCK, { L: '#67e8f9', k: '#0b1a33' })
+// A data crystal resting on the shrine's stone pedestal; it pulses faster while agents are busy.
+function crystal(ctx: Ctx, cx: number, top: number, t: number, busy: boolean) {
+  const sprite = pixelSprite('core:crystal', CRYSTAL, { C: '#22d3ee', c: '#0e7490', L: '#ecfeff' })
   ctx.save()
   ctx.shadowColor = HOLO
-  ctx.shadowBlur = busy ? 10 : 4
-  ctx.drawImage(lock, cx - 7, top + 8, 14, 14)
+  ctx.shadowBlur = busy ? 10 + 4 * Math.sin(t / 200) : 4
+  ctx.drawImage(sprite, cx - 5, top + 6, 10, 12)
   ctx.restore()
+  for (let i = 0; i < 5; i++) {
+    const on = (Math.floor(t / 180) + i * 2) % 5 < (busy ? 3 : 1)
+    fill(ctx, on ? '#4ade80' : '#2a2c33', cx - 12 + i * 5, top + 24, 3, 2)
+  }
 }
 
-function statusScreen(ctx: Ctx, x: number, y: number, font: string, active: number, total: number) {
-  box(ctx, '#03101c', x, y, 66, 28, alpha(HOLO, 0.7))
+export type BoardCounts = { running: number; approval: number; completed: number }
+
+// The village Mission Board hangs in the Command Tower: live counts of real missions; clicking it opens
+// the Missions page (see FloorView).
+export function missionBoardRect(room: RoomRect): Rect {
+  return { x: room.x + 8, y: room.y + 13, w: 70, h: 32 }
+}
+
+function missionBoard(ctx: Ctx, room: RoomRect, font: string, counts: BoardCounts) {
+  const { x, y, w, h } = missionBoardRect(room)
+  fill(ctx, '#3b2414', x, y, w, h)
+  fill(ctx, '#1a120c', x + 2, y + 2, w - 4, h - 4)
+  fill(ctx, '#f43f5e', x, y, w, 1)
   ctx.textBaseline = 'middle'
-  ctx.fillStyle = '#a5f3fc'
   ctx.font = `9px ${font}`
-  ctx.fillText('ĐANG CHẠY', x + 4, y + 7)
-  ctx.fillStyle = '#ecfeff'
-  ctx.font = `16px ${font}`
-  ctx.fillText(`${active}`, x + 4, y + 18)
-  const w = ctx.measureText(`${active}`).width
-  ctx.fillStyle = '#67e8f9'
-  ctx.font = `10px ${font}`
-  ctx.fillText(`/ ${total} agent`, x + 7 + w, y + 19)
-  fill(ctx, '#0b2440', x + 4, y + 24, 58, 2)
-  fill(ctx, '#4ade80', x + 4, y + 24, Math.round(58 * (total > 0 ? active / total : 0)), 2)
+  ctx.fillStyle = '#fda4af'
+  ctx.fillText('BẢNG NHIỆM VỤ', x + 5, y + 7)
+  const rows: [string, number, string][] = [
+    ['đang chạy', counts.running, '#22d3ee'],
+    ['chờ duyệt', counts.approval, '#fb7185'],
+    ['đã xong', counts.completed, '#4ade80'],
+  ]
+  rows.forEach(([label, value, color], i) => {
+    const ry = y + 14 + i * 6
+    fill(ctx, color, x + 5, ry - 1, 2, 2)
+    ctx.fillStyle = '#e2d6c0'
+    ctx.font = `8px ${font}`
+    ctx.fillText(label, x + 10, ry)
+    ctx.fillStyle = color
+    ctx.fillText(String(value), x + w - 14, ry)
+  })
 }
 
 function waveScreen(ctx: Ctx, x: number, y: number, t: number, busy: boolean) {
@@ -111,17 +126,16 @@ function waveScreen(ctx: Ctx, x: number, y: number, t: number, busy: boolean) {
   }
 }
 
-// The AI core in the orchestration center: hologram, light beam, data core and floor rings,
-// plus two wall screens with live agent counts.
-export function drawCore(ctx: Ctx, room: RoomRect, t: number, font: string, active: number, total: number) {
+// The glowing parts of the shrine in the orchestration hall: hologram, light beam, crystal and floor rings,
+// plus the Mission Board and a wave tablet on the wall. The stone itself is part of the static floor (dojo.ts).
+export function drawCore(ctx: Ctx, room: RoomRect, t: number, font: string, busy: boolean, counts: BoardCounts) {
   const core = coreRect(room)
   const cx = core.x + core.w / 2
-  const top = core.y + core.h - 32
-  const busy = active > 0
+  const top = core.y + core.h - 34
   rings(ctx, cx, core.y + core.h - 4, t)
   beam(ctx, cx, top, room.y + 34)
-  datacore(ctx, cx, top, t, busy)
+  crystal(ctx, cx, top, t, busy)
   hologram(ctx, cx, room.y + 30, t)
-  statusScreen(ctx, room.x + 10, room.y + 17, font, active, total)
+  missionBoard(ctx, room, font, counts)
   waveScreen(ctx, room.x + room.w - 76, room.y + 17, t, busy)
 }

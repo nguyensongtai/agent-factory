@@ -17,7 +17,7 @@ export default function OverviewPage() {
 
   return (
     <>
-      <h1 className="sr-only">Tổng quan xưởng agent</h1>
+      <h1 className="sr-only">Tổng quan làng ninja AI</h1>
       {error && <ErrorBanner message={error} onRetry={retry} />}
       {snapshot && summary ? (
         <KpiGrid summary={summary} agents={agents} latency={snapshot.latency} />
@@ -29,12 +29,11 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <FactoryMap />
-        <div className="flex flex-col gap-4 md:grid md:grid-cols-2 xl:flex xl:max-h-[calc(100dvh-7rem)] xl:flex-col">
-          {snapshot ? <ActivityPanel timeline={snapshot.timeline} /> : <Skeleton className="h-48" />}
-          {snapshot ? <LiveFeed agents={agents} now={snapshot.generatedAt} /> : <Skeleton className="h-80" />}
-        </div>
+      {/* The map takes the full width so every room fits and agents stay big enough to read. */}
+      <FactoryMap />
+      <div className="grid gap-4 md:grid-cols-2">
+        {snapshot ? <ActivityPanel timeline={snapshot.timeline} /> : <Skeleton className="h-48" />}
+        {snapshot ? <LiveFeed agents={agents} now={snapshot.generatedAt} /> : <Skeleton className="h-80" />}
       </div>
     </>
   )

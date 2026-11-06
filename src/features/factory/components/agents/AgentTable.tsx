@@ -5,6 +5,7 @@ import { roleOf } from '../../domain/stations'
 import type { AgentSnapshot } from '../../domain/types'
 import { useFactory } from '../../context/FactoryProvider'
 import PixelAvatar from '../common/PixelAvatar'
+import RankBadge from '../common/RankBadge'
 import StatusBadge from '../common/StatusBadge'
 
 function task(agent: AgentSnapshot): string {
@@ -22,7 +23,7 @@ export default function AgentTable({ agents, now }: { agents: AgentSnapshot[]; n
       <table className="w-full min-w-[880px] text-left text-sm">
         <thead className="border-b border-line text-xs uppercase tracking-wider text-slate-400">
           <tr>
-            <th scope="col" className="px-3 py-2 font-semibold">Agent</th>
+            <th scope="col" className="px-3 py-2 font-semibold">Ninja</th>
             <th scope="col" className="px-3 py-2 font-semibold">Vai trò · nhiệm vụ</th>
             <th scope="col" className="px-3 py-2 font-semibold">Model</th>
             <th scope="col" className="px-3 py-2 font-semibold">Trạng thái</th>
@@ -47,9 +48,12 @@ export default function AgentTable({ agents, now }: { agents: AgentSnapshot[]; n
                   }}
                   className="flex max-w-72 cursor-pointer items-center gap-3 text-left"
                 >
-                  <PixelAvatar sessionId={agent.id} project={agent.project} size={34} />
+                  <PixelAvatar agent={agent} size={34} />
                   <span className="min-w-0">
-                    <span className="block truncate font-semibold text-slate-100">{agent.title}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="truncate font-semibold text-slate-100">{agent.title}</span>
+                      <RankBadge agent={agent} />
+                    </span>
                     <span className="block truncate text-xs text-slate-500">
                       {agent.project} · {timeAgo(agent.lastActivityAt, now)}
                       {agent.subagents.length > 0 ? ` · 🤖 ${agent.subagents.length}` : ''}
