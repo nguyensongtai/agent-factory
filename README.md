@@ -54,6 +54,9 @@ npm run dev
 Mở **http://127.0.0.1:4317**. Phiên Claude Code nào có hoạt động trong 3 giờ gần nhất sẽ hiện trên bản đồ. Mở một
 phiên Claude Code ở terminal khác để thấy agent xuất hiện và đi lại.
 
+Để dashboard chạy nền mà vẫn biết lúc nào có agent chờ bạn: bấm 🔕 **Báo khi chờ** ở header và cho phép thông báo.
+Tiêu đề tab luôn hiện số agent đang chờ, ví dụ “(2) Làng Ninja AI”, kể cả khi chưa bật thông báo.
+
 ### Chạy bản production
 
 Bản production nhẹ và nhanh hơn, phù hợp khi muốn để dashboard chạy suốt.

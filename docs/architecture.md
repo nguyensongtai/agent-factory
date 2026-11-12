@@ -32,7 +32,8 @@ giả và không gửi gì ra ngoài.
 
 Transcript lớn hơn 8 MB chỉ được đọc từ đoạn cuối, nên tổng token của những phiên rất dài sẽ thấp hơn thực tế.
 
-Mỗi tab trình duyệt tự poll `/api/agents` mỗi 1,5 giây. Các lần gọi chồng nhau dùng chung một lần quét đang chạy, nên
+Mỗi tab trình duyệt tự poll `/api/agents` mỗi 1,5 giây, và mỗi 5 giây khi tab bị ẩn (vẫn poll để còn báo khi có
+agent chờ bạn). Các lần gọi chồng nhau dùng chung một lần quét đang chạy, nên
 không quét đĩa trùng và không có dòng transcript nào bị cộng hai lần.
 
 Nhiệm vụ tự tạo được lưu trong `.data/missions.json` (đã git-ignore). Làng **chỉ quan sát**, không tự chạy agent:
@@ -68,6 +69,18 @@ sáng nhẹ để dễ nhìn. Tên khu và nhân vật đều tự thiết kế,
 
 Mission Board treo trong Command Tower hiện số nhiệm vụ thật (đang chạy, chờ duyệt, đã xong); bấm vào để mở trang
 Nhiệm vụ.
+
+## Báo khi agent chờ bạn
+
+Khi một agent hoặc subagent **vừa chuyển** sang trạng thái chờ (AskUserQuestion, ExitPlanMode…):
+- tiêu đề tab có thêm số đang chờ ở đầu, ví dụ “(2) Làng Ninja AI”;
+- nếu đã bật nút 🔔 “Báo khi chờ” ở header, trình duyệt hiện thông báo; bấm vào thì quay lại tab và mở drawer của
+  agent đó (subagent thì mở agent đã gọi nó).
+
+Chỉ báo một lần mỗi lần chuyển trạng thái, không báo lại ở mỗi lần poll, và không báo cho agent đã chờ sẵn từ lúc tải
+trang. Quyền thông báo chỉ được xin khi bấm nút, không tự xin lúc tải trang; lựa chọn lưu trong `localStorage`
+(`lang-ninja:notify-asking`). Logic chuyển trạng thái nằm ở `domain/alerts.ts`, phần trình duyệt ở
+`hooks/useAskingAlerts.ts`. Thông báo chỉ là thông báo cục bộ của trình duyệt, không đi qua server nào khác.
 
 ## Ninja và cấp bậc
 
@@ -116,7 +129,7 @@ Học theo cách [pixel-agents](https://github.com/pixel-agents-hq/pixel-agents)
 
 ```
 scripts/generate-icons.mjs        sinh mọi icon từ một hình pixel 16x16
-test/                             node:test cho parser, tracker và bảng giá; fixtures/*.jsonl viết tay
+test/                             node:test cho parser, tracker, bảng giá và logic báo khi chờ; fixtures/*.jsonl viết tay
 src/app/                          chỉ chứa route
   (console)/                      layout dùng chung + 4 trang: /, /agents, /missions, /monitoring
   api/agents, api/missions        snapshot và kho nhiệm vụ tự tạo
@@ -125,7 +138,7 @@ src/features/factory/
   domain/      kiểu dữ liệu, khu, giá, chỉ số, nhiệm vụ, định dạng (thuần, dùng cho cả server lẫn client)
   server/      server-only: transcript.ts (parser tăng dần), tracker.ts (snapshot), permissions.ts, missions-store.ts
   context/     FactoryProvider: một lần poll cho mọi trang, trạng thái drawer agent/phòng
-  hooks/       useFactorySnapshot, useManualMissions
+  hooks/       useFactorySnapshot, useManualMissions, useAskingAlerts
   scene/       engine canvas, không phụ thuộc React: layout, grid, movement, entities, traces, render/*
   components/  shell, overview, map, agents, missions, monitoring, common
 ```
@@ -145,7 +158,7 @@ Mỗi frame vẽ theo lớp (`scene/render/frame.ts`):
 
 Format transcript của Claude Code không có tài liệu chính thức, nên `npm test` giữ lại những gì parser đang dựa vào:
 đếm usage một lần cho mỗi `message.id`, ghép `tool_use`/`tool_result`, ngắt giữa chừng, lỗi API, `SubagentHandback`,
-kế hoạch (TodoWrite / update_plan), tiêu đề slash command, model chưa có giá, đọc tăng dần (dòng bị cắt, file thu nhỏ, file trên 8 MB),
+kế hoạch (TodoWrite / update_plan), tiêu đề slash command, model chưa có giá, báo khi agent chuyển sang chờ, đọc tăng dần (dòng bị cắt, file thu nhỏ, file trên 8 MB),
 hai snapshot chạy chồng nhau không đếm đôi, và bảng giá. Khi Claude Code đổi format, thêm một fixture mới vào `test/fixtures/`.
 
 Fixture luôn **viết tay**, không chép từ transcript thật (transcript chứa code và prompt riêng tư). Test chạy thẳng

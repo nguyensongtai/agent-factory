@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FactorySnapshot } from '../domain/types'
 
 const POLL_MS = 1500
+// A background tab keeps polling, more slowly, so agents waiting for the user are still noticed.
+const HIDDEN_POLL_MS = 5000
 
 export type FactoryFeed = {
   snapshot: FactorySnapshot | null
@@ -23,14 +25,18 @@ export function useFactorySnapshot(): FactoryFeed {
   useEffect(() => {
     let cancelled = false
     let timer: ReturnType<typeof setTimeout>
+    // Only the latest load schedules the next one, so an early reload (tab shown, retry) never leaves
+    // two polling loops running.
+    let latest = 0
 
     const load = async () => {
       clearTimeout(timer)
+      const id = ++latest
       const startedAt = performance.now()
       try {
         const res = await fetch('/api/agents', { cache: 'no-store' })
         const body = (await res.json()) as FactorySnapshot | { error: string }
-        if (cancelled) return
+        if (cancelled || id !== latest) return
         setRttMs(Math.round(performance.now() - startedAt))
         if ('error' in body) setError(body.error)
         else {
@@ -38,12 +44,13 @@ export function useFactorySnapshot(): FactoryFeed {
           setError(null)
         }
       } catch (err) {
+        if (cancelled || id !== latest) return
         console.error('[factory] poll failed', err)
-        if (!cancelled) setError('Mất kết nối tới server làng')
+        setError('Mất kết nối tới server làng')
       }
-      // Pause while the tab is hidden; resume on the next visibility change.
-      if (!cancelled && document.visibilityState === 'visible') timer = setTimeout(load, POLL_MS)
+      timer = setTimeout(load, document.visibilityState === 'visible' ? POLL_MS : HIDDEN_POLL_MS)
     }
+    // Back in front: refresh now instead of waiting out the slow timer.
     const onVisible = () => {
       if (document.visibilityState === 'visible') load()
     }

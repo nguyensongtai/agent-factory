@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { clock } from '../../domain/format'
 import { allMissions, countByStatus } from '../../domain/metrics'
 import { useFactory } from '../../context/FactoryProvider'
+import type { NotifyState } from '../../hooks/useAskingAlerts'
 
 const NAV = [
   { href: '/', label: 'Tổng quan', icon: '🏭' },
@@ -15,9 +16,36 @@ const NAV = [
   { href: '/monitoring', label: 'Giám sát', icon: '📡' },
 ] as const
 
+const NOTIFY_HELP: Record<Exclude<NotifyState, 'unsupported'>, string> = {
+  on: 'Đang bật: trình duyệt báo khi có ninja chuyển sang chờ bạn. Bấm để tắt.',
+  off: 'Bấm để nhận thông báo của trình duyệt khi có ninja chuyển sang chờ bạn.',
+  denied: 'Trình duyệt đang chặn thông báo của trang này. Bật lại trong cài đặt trang của trình duyệt.',
+}
+
+function NotifyToggle({ state, onToggle }: { state: NotifyState; onToggle: () => void }) {
+  if (state === 'unsupported') return null
+  const on = state === 'on'
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={state === 'denied'}
+      aria-pressed={on}
+      title={NOTIFY_HELP[state]}
+      className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+        on ? 'border-cyan-400/40 text-cyan-100' : 'border-line text-slate-400 hover:bg-white/5 hover:text-slate-200'
+      }`}
+    >
+      <span aria-hidden>{on ? '🔔' : '🔕'}</span>
+      {state === 'denied' ? 'Thông báo bị chặn' : on ? 'Báo khi chờ: bật' : 'Báo khi chờ: tắt'}
+    </button>
+  )
+}
+
 export default function ConsoleHeader() {
   const pathname = usePathname()
-  const { snapshot, error, agents, hiddenAutomated, showAutomated, toggleAutomated } = useFactory()
+  const { snapshot, error, agents, hiddenAutomated, showAutomated, toggleAutomated, notify, toggleNotify } = useFactory()
   const live = snapshot !== null && !error
   const approvals = countByStatus(allMissions(agents)).approval
   const recentErrors = snapshot?.timeline.reduce((n, p) => n + p.errors, 0) ?? 0
@@ -75,6 +103,7 @@ export default function ConsoleHeader() {
               {showAutomated ? 'Ẩn' : 'Hiện'} {hiddenAutomated} phiên SDK đã xong
             </button>
           )}
+          <NotifyToggle state={notify} onToggle={toggleNotify} />
           <span
             role="status"
             className={`flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs font-semibold ${

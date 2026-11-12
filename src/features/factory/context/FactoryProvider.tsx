@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
 import type { AgentSnapshot, FactorySnapshot, StationId } from '../domain/types'
+import { type NotifyState, useAskingAlerts } from '../hooks/useAskingAlerts'
 import { useFactorySnapshot } from '../hooks/useFactorySnapshot'
 
 type FactoryContextValue = {
@@ -19,6 +20,10 @@ type FactoryContextValue = {
   openAgent: (id: string | null) => void
   roomId: StationId | null
   openRoom: (id: StationId | null) => void
+  // Agents and subagents waiting for the user, and the browser-notification toggle for them.
+  waiting: number
+  notify: NotifyState
+  toggleNotify: () => void
 }
 
 const FactoryContext = createContext<FactoryContextValue | null>(null)
@@ -29,6 +34,11 @@ export function FactoryProvider({ children }: { children: React.ReactNode }) {
   const [showAutomated, setShowAutomated] = useState(false)
   const [agentId, setAgentId] = useState<string | null>(null)
   const [roomId, setRoomId] = useState<StationId | null>(null)
+  const openAgent = useCallback((id: string | null) => {
+    setRoomId(null)
+    setAgentId(id)
+  }, [])
+  const { notify, toggleNotify, waiting } = useAskingAlerts(snapshot?.agents ?? null, openAgent)
 
   const value = useMemo<FactoryContextValue>(() => {
     const all = snapshot?.agents ?? []
@@ -44,17 +54,17 @@ export function FactoryProvider({ children }: { children: React.ReactNode }) {
       showAutomated,
       toggleAutomated: () => setShowAutomated((v) => !v),
       agentId,
-      openAgent: (id) => {
-        setRoomId(null)
-        setAgentId(id)
-      },
+      openAgent,
       roomId,
       openRoom: (id) => {
         setAgentId(null)
         setRoomId(id)
       },
+      waiting,
+      notify,
+      toggleNotify,
     }
-  }, [snapshot, error, rttMs, retry, showAutomated, agentId, roomId])
+  }, [snapshot, error, rttMs, retry, showAutomated, agentId, roomId, openAgent, waiting, notify, toggleNotify])
 
   return <FactoryContext.Provider value={value}>{children}</FactoryContext.Provider>
 }
