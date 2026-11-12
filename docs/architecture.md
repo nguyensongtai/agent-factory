@@ -113,6 +113,7 @@ Học theo cách [pixel-agents](https://github.com/pixel-agents-hq/pixel-agents)
 
 ```
 scripts/generate-icons.mjs        sinh mọi icon từ một hình pixel 16x16
+test/                             node:test cho parser và bảng giá; fixtures/*.jsonl viết tay
 src/app/                          chỉ chứa route
   (console)/                      layout dùng chung + 4 trang: /, /agents, /missions, /monitoring
   api/agents, api/missions        snapshot và kho nhiệm vụ tự tạo
@@ -136,3 +137,14 @@ Mỗi frame vẽ theo lớp (`scene/render/frame.ts`):
 4. Thứ phát sáng và thời tiết (`glow.ts`, `core.ts`, `floor.ts`, `weather.ts`): đèn lồng, màn hình, LED, đường dữ
    liệu, thác, gợn suối, mây, sương, mưa và hiệu ứng.
 5. Chữ: biển tên, số agent, bong bóng, thẻ tên khi rê chuột.
+
+## Test
+
+Format transcript của Claude Code không có tài liệu chính thức, nên `npm test` giữ lại những gì parser đang dựa vào:
+đếm usage một lần cho mỗi `message.id`, ghép `tool_use`/`tool_result`, ngắt giữa chừng, lỗi API, `SubagentHandback`,
+kế hoạch (TodoWrite / update_plan), tiêu đề slash command, đọc tăng dần (dòng bị cắt, file thu nhỏ, file trên 8 MB) và
+bảng giá. Khi Claude Code đổi format, thêm một fixture mới vào `test/fixtures/`.
+
+Fixture luôn **viết tay**, không chép từ transcript thật (transcript chứa code và prompt riêng tư). Test chạy thẳng
+bằng `node --test` với type stripping của Node; `test/register.mjs` thêm đuôi `.ts` cho import, hiểu alias `@/` và
+thay `server-only` bằng module rỗng (package thật throw khi chạy ngoài Next).

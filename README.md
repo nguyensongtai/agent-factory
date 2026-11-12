@@ -92,6 +92,7 @@ Sửa `.env.local` xong thì khởi động lại server.
 | `npm run build` / `npm start` | Build và chạy bản production |
 | `npm run typecheck` | Sinh kiểu cho route rồi kiểm tra TypeScript |
 | `npm run lint` | ESLint |
+| `npm test` | Test parser transcript và bảng giá bằng `node:test` (cần Node ≥ 22.18, không thêm dependency) |
 | `npm run icons` | Vẽ lại favicon, apple icon và icon PWA từ hình pixel trong `scripts/generate-icons.mjs` |
 
 ## Xử lý sự cố

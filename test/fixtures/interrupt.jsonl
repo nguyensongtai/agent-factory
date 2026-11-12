@@ -1,0 +1,3 @@
+{"type":"user","uuid":"u1","timestamp":"2026-01-01T10:00:00.000Z","message":{"role":"user","content":"Refactor the parser"}}
+{"type":"assistant","uuid":"a1","timestamp":"2026-01-01T10:00:01.000Z","message":{"id":"msg_1","model":"claude-opus-5-5","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"sleep 100"}}],"usage":{"input_tokens":1,"output_tokens":1}}}
+{"type":"user","uuid":"u2","timestamp":"2026-01-01T10:00:09.000Z","message":{"role":"user","content":[{"type":"text","text":"[Request interrupted by user for tool use]"}]}}

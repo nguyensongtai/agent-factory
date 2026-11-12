@@ -1,0 +1,6 @@
+{"type":"user","uuid":"u1","timestamp":"2026-01-01T10:00:00.000Z","message":{"role":"user","content":"Run the checks"}}
+{"type":"assistant","uuid":"a1","timestamp":"2026-01-01T10:00:01.000Z","message":{"id":"msg_1","model":"claude-opus-5-5","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t-ok","name":"Bash","input":{"command":"npm test"}},{"type":"tool_use","id":"t-bad","name":"Edit","input":{"file_path":"/work/demo/a.ts"}}],"usage":{"input_tokens":1,"output_tokens":1}}}
+{"type":"user","uuid":"u2","timestamp":"2026-01-01T10:00:03.500Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t-ok","content":"ok"}]}}
+{"type":"user","uuid":"u3","timestamp":"2026-01-01T10:00:05.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t-bad","is_error":true,"content":[{"type":"text","text":"old_string not found in file"}]}]}}
+{"type":"user","uuid":"u4","timestamp":"2026-01-01T10:00:06.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t-unknown","content":"orphan result"}]}}
+{"type":"assistant","uuid":"a2","timestamp":"2026-01-01T10:00:07.000Z","message":{"id":"msg_2","model":"claude-opus-5-5","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t-wait","name":"Grep","input":{"pattern":"TODO"}}],"usage":{"input_tokens":1,"output_tokens":1}}}

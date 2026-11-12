@@ -1,0 +1,4 @@
+{"type":"user","uuid":"u1","timestamp":"2026-01-01T10:00:00.000Z","isSidechain":true,"message":{"role":"user","content":"Find every caller of parse()"}}
+{"type":"assistant","uuid":"a1","timestamp":"2026-01-01T10:00:01.000Z","message":{"id":"msg_1","model":"claude-haiku-5-5","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t1","name":"Grep","input":{"pattern":"parse\\("}}],"usage":{"input_tokens":1,"output_tokens":1}}}
+{"type":"user","uuid":"u2","timestamp":"2026-01-01T10:00:02.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"t1","content":"src/a.ts"}]}}
+{"type":"assistant","uuid":"a2","timestamp":"2026-01-01T10:00:03.000Z","message":{"id":"msg_2","model":"claude-haiku-5-5","stop_reason":"tool_use","content":[{"type":"tool_use","id":"t-hand","name":"SubagentHandback","input":{"report":"one caller"}}],"usage":{"input_tokens":1,"output_tokens":1}}}
