@@ -2,21 +2,22 @@
 
 import Sheet from '@/components/ui/Sheet'
 
-import { compact, duration, percent, timeAgo, totalTokens, usd } from '../../domain/format'
+import { compact, duration, percent, timeAgo, totalTokens } from '../../domain/format'
 import { roleOf, STATION_BY_ID } from '../../domain/stations'
 import { useFactory } from '../../context/FactoryProvider'
 import CopyCommand from '../common/CopyCommand'
+import { CostNote } from '../common/Cost'
 import PixelAvatar from '../common/PixelAvatar'
 import RankBadge from '../common/RankBadge'
 import StatusBadge from '../common/StatusBadge'
 import { ExecutionHistory, Permissions, PlanList, Powers, Section, Subagents, UsageByModel } from './AgentSections'
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
   return (
     <div className="rounded-md border border-line bg-void/60 px-3 py-2">
       <p className="text-xs text-slate-400">{label}</p>
       <p className="truncate font-display text-lg font-semibold text-slate-50 tabular-nums">{value}</p>
-      {sub && <p className="truncate text-xs text-slate-500">{sub}</p>}
+      {sub && <p className="text-xs text-slate-500">{sub}</p>}
     </div>
   )
 }
@@ -62,7 +63,7 @@ export default function AgentDrawer() {
             <Stat
               label="Token cả phiên"
               value={compact(totalTokens(agent.usage.tokens))}
-              sub={`≈ ${usd(agent.usage.cost)} theo giá API`}
+              sub={<CostNote cost={agent.usage.cost} unpricedTokens={agent.usage.unpricedTokens} />}
             />
             <Stat
               label="Tool thành công"

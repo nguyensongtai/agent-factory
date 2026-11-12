@@ -1,9 +1,10 @@
 'use client'
 
-import { compact, duration, percent, timeAgo, totalTokens, usd } from '../../domain/format'
+import { compact, duration, percent, timeAgo, totalTokens } from '../../domain/format'
 import { roleOf } from '../../domain/stations'
 import type { AgentSnapshot } from '../../domain/types'
 import { useFactory } from '../../context/FactoryProvider'
+import { CostValue } from '../common/Cost'
 import PixelAvatar from '../common/PixelAvatar'
 import RankBadge from '../common/RankBadge'
 import StatusBadge from '../common/StatusBadge'
@@ -71,7 +72,9 @@ export default function AgentTable({ agents, now }: { agents: AgentSnapshot[]; n
               </td>
               <td className="px-3 py-2.5 text-right tabular-nums">
                 <span className="block text-slate-200">{compact(totalTokens(agent.usage.tokens))}</span>
-                <span className="block text-xs text-slate-500">{usd(agent.usage.cost)}</span>
+                <span className="block text-xs text-slate-500">
+                  <CostValue cost={agent.usage.cost} unpricedTokens={agent.usage.unpricedTokens} />
+                </span>
               </td>
               <td className={`px-3 py-2.5 text-right tabular-nums ${agent.errorCount > 0 ? 'text-amber-300' : 'text-slate-300'}`}>
                 {percent(agent.toolCount - agent.errorCount, agent.toolCount)}

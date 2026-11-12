@@ -1,8 +1,9 @@
 'use client'
 
-import { compact, duration, percent, totalTokens, usd } from '../../domain/format'
+import { compact, duration, percent, totalTokens } from '../../domain/format'
 import type { AgentSnapshot } from '../../domain/types'
 import { useFactory } from '../../context/FactoryProvider'
+import { CostValue } from '../common/Cost'
 
 export default function PerformanceTable({ agents }: { agents: AgentSnapshot[] }) {
   const { openAgent } = useFactory()
@@ -46,7 +47,10 @@ export default function PerformanceTable({ agents }: { agents: AgentSnapshot[] }
               </td>
               <td className="px-3 py-2 text-right tabular-nums">
                 <span className="text-slate-200">{compact(totalTokens(agent.usage.tokens))}</span>
-                <span className="text-slate-500"> · {usd(agent.usage.cost)}</span>
+                <span className="text-slate-500">
+                  {' · '}
+                  <CostValue cost={agent.usage.cost} unpricedTokens={agent.usage.unpricedTokens} />
+                </span>
               </td>
             </tr>
           ))}

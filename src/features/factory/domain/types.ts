@@ -39,9 +39,12 @@ export type TokenUsage = {
 
 export type Usage = {
   tokens: TokenUsage
-  // USD at public API prices; models without a known price add tokens but no cost.
+  // USD at public API prices. Tokens of models missing from the price table are not in it.
   cost: number
-  byModel: Record<string, { tokens: number; cost: number }>
+  // Tokens of real models missing from the price table: the cost above leaves them out.
+  unpricedTokens: number
+  // unpriced: a real model without a known price (synthetic entries are never flagged).
+  byModel: Record<string, { tokens: number; cost: number; unpriced: boolean }>
 }
 
 export type LatencyStats = { p50: number; p95: number; samples: number }
@@ -76,7 +79,15 @@ export type ErrorEvent = {
   message: string
 }
 
-export type TimelinePoint = { at: number; calls: number; tokens: number; errors: number; cost: number }
+export type TimelinePoint = {
+  at: number
+  calls: number
+  tokens: number
+  errors: number
+  cost: number
+  // Tokens of models without a known price, which `cost` leaves out.
+  unpricedTokens: number
+}
 
 export type Permissions = { allow: string[]; mcpServers: string[] }
 

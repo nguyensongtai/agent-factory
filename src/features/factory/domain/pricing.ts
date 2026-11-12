@@ -31,7 +31,13 @@ export type MessageUsage = {
   fast: boolean
 }
 
-// Returns null for models without a known price (e.g. synthetic messages).
+// Synthetic entries (`<synthetic>`) and entries without a model are not billed API calls, so a missing
+// price for them hides nothing.
+export function isBillableModel(model: string): boolean {
+  return model !== '' && !model.startsWith('<')
+}
+
+// Returns null for models without a known price (e.g. synthetic messages or a model newer than this table).
 export function estimateCost(model: string, u: MessageUsage): number | null {
   const entry = PRICES.find(([prefix]) => model.startsWith(prefix))
   if (!entry) return null

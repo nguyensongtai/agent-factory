@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { estimateCost, type MessageUsage } from '../src/features/factory/domain/pricing'
+import { estimateCost, isBillableModel, type MessageUsage } from '../src/features/factory/domain/pricing'
 
 const M = 1_000_000
 const none: MessageUsage = { input: 0, output: 0, cacheRead: 0, write5m: 0, write1h: 0, fast: false }
@@ -51,4 +51,11 @@ describe('estimateCost', () => {
     close(normal, 4 + 20 + 0.2 + 5 + 8)
     close(estimateCost('claude-opus-5-5', usage({ ...u, fast: true })), normal * 2)
   })
+})
+
+test('isBillableModel tells real models from synthetic entries', () => {
+  assert.equal(isBillableModel('claude-nova-7'), true)
+  assert.equal(isBillableModel('claude-opus-5-5'), true)
+  assert.equal(isBillableModel('<synthetic>'), false)
+  assert.equal(isBillableModel(''), false)
 })

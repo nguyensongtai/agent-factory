@@ -135,15 +135,17 @@ function latencyOf(values: number[]): LatencyStats {
 function addUsage(target: Usage, source: Usage): void {
   for (const key of ['input', 'output', 'cacheRead', 'cacheWrite'] as const) target.tokens[key] += source.tokens[key]
   target.cost += source.cost
+  target.unpricedTokens += source.unpricedTokens
   for (const [model, value] of Object.entries(source.byModel)) {
-    const entry = (target.byModel[model] ??= { tokens: 0, cost: 0 })
+    const entry = (target.byModel[model] ??= { tokens: 0, cost: 0, unpriced: false })
     entry.tokens += value.tokens
     entry.cost += value.cost
+    entry.unpriced ||= value.unpriced
   }
 }
 
 function cloneUsage(usage: Usage): Usage {
-  const copy: Usage = { tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, cost: 0, byModel: {} }
+  const copy: Usage = { tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, cost: 0, unpricedTokens: 0, byModel: {} }
   addUsage(copy, usage)
 
   return copy
@@ -268,6 +270,7 @@ function mergeTimeline(target: Map<number, TimelinePoint>, state: TranscriptStat
     into.tokens += point.tokens
     into.errors += point.errors
     into.cost += point.cost
+    into.unpricedTokens += point.unpricedTokens
   }
 }
 
@@ -357,7 +360,7 @@ async function buildSnapshot(): Promise<FactorySnapshot> {
   const timeline = new Map<number, TimelinePoint>()
   for (let i = TIMELINE_POINTS - 1; i >= 0; i--) {
     const at = lastMinute - i * MINUTE
-    timeline.set(at, { at, calls: 0, tokens: 0, errors: 0, cost: 0 })
+    timeline.set(at, { at, calls: 0, tokens: 0, errors: 0, cost: 0, unpricedTokens: 0 })
   }
   const errors: ErrorEvent[] = []
   const latencies: number[] = []

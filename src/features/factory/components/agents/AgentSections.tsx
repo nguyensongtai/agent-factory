@@ -1,6 +1,7 @@
-import { compact, duration, timeAgo, toolLabel, topEntries, usd } from '../../domain/format'
+import { compact, duration, timeAgo, toolLabel, topEntries } from '../../domain/format'
 import { STATION_BY_ID } from '../../domain/stations'
 import type { AgentSnapshot, PlanItem, Powers as PowerCounts, Permissions as Grants, ToolCall, Usage } from '../../domain/types'
+import { ModelCost } from '../common/Cost'
 import StatusBadge from '../common/StatusBadge'
 
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -170,7 +171,9 @@ export function UsageByModel({ usage }: { usage: Usage }) {
             <tr key={model} className="border-b border-line last:border-0">
               <td className="py-1 text-slate-300">{model.replace('claude-', '')}</td>
               <td className="py-1 text-right text-slate-200 tabular-nums">{compact(row.tokens)}</td>
-              <td className="py-1 text-right text-slate-400 tabular-nums">{usd(row.cost)}</td>
+              <td className="py-1 text-right text-slate-400 tabular-nums">
+                <ModelCost cost={row.cost} unpriced={row.unpriced} />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -179,6 +182,11 @@ export function UsageByModel({ usage }: { usage: Usage }) {
         Vào {compact(tokens.input)} · ra {compact(tokens.output)} · đọc cache {compact(tokens.cacheRead)} · ghi cache{' '}
         {compact(tokens.cacheWrite)}. Tính cả subagent.
       </p>
+      {usage.unpricedTokens > 0 && (
+        <p className="mt-1 text-xs text-amber-300">
+          Tổng chi phí chưa gồm {compact(usage.unpricedTokens)} token của model chưa có giá.
+        </p>
+      )}
     </Section>
   )
 }

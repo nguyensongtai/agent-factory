@@ -12,6 +12,8 @@ export type Summary = {
   errors: number
   tokens: number
   cost: number
+  // Tokens in the last hour from models without a known price; `cost` leaves them out.
+  unpricedTokens: number
 }
 
 export function allMissions(agents: AgentSnapshot[]): Mission[] {
@@ -29,7 +31,7 @@ export function countByStatus(missions: Mission[]): Record<MissionStatus, number
 // task counts cover every turn, subagent run and plan item still in the visible window.
 export function summarize(snapshot: FactorySnapshot, agents: AgentSnapshot[]): Summary {
   const tasks = countByStatus(allMissions(agents))
-  const sum = (key: 'calls' | 'errors' | 'tokens' | 'cost') => snapshot.timeline.reduce((total, p) => total + p[key], 0)
+  const sum = (key: 'calls' | 'errors' | 'tokens' | 'cost' | 'unpricedTokens') => snapshot.timeline.reduce((total, p) => total + p[key], 0)
 
   return {
     sessions: agents.length,
@@ -43,6 +45,7 @@ export function summarize(snapshot: FactorySnapshot, agents: AgentSnapshot[]): S
     errors: sum('errors'),
     tokens: sum('tokens'),
     cost: sum('cost'),
+    unpricedTokens: sum('unpricedTokens'),
   }
 }
 

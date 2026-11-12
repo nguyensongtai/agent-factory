@@ -23,7 +23,7 @@ giả và không gửi gì ra ngoài.
 | Chỉ số | Nguồn |
 |---|---|
 | Token | `message.usage` của từng phản hồi API, mỗi message chỉ đếm một lần |
-| Chi phí | **ước tính** theo bảng giá API công khai (`domain/pricing.ts`), gồm cả đọc/ghi cache. Dùng gói đăng ký thì không bị tính theo token |
+| Chi phí | **ước tính** theo bảng giá API công khai (`domain/pricing.ts`), gồm cả đọc/ghi cache. Dùng gói đăng ký thì không bị tính theo token. Model chưa có trong bảng giá vẫn được đếm token nhưng ghi “chưa có giá” và **không** được cộng vào chi phí; tổng chi phí khi đó kèm ghi chú số token bị bỏ ra. Message tổng hợp (`<synthetic>`) không phải model nên không bị gắn nhãn này |
 | Phản hồi API | thời gian từ entry `api-request` tới khối trả lời đầu tiên có `requestRef` trùng khớp |
 | Lỗi | `tool_result` có `is_error`, cùng các tin nhắn lỗi API |
 | Nhiệm vụ | mỗi lượt yêu cầu của người dùng, mỗi lần chạy subagent, mỗi mục kế hoạch (TodoWrite / update_plan) |
@@ -145,7 +145,7 @@ Mỗi frame vẽ theo lớp (`scene/render/frame.ts`):
 
 Format transcript của Claude Code không có tài liệu chính thức, nên `npm test` giữ lại những gì parser đang dựa vào:
 đếm usage một lần cho mỗi `message.id`, ghép `tool_use`/`tool_result`, ngắt giữa chừng, lỗi API, `SubagentHandback`,
-kế hoạch (TodoWrite / update_plan), tiêu đề slash command, đọc tăng dần (dòng bị cắt, file thu nhỏ, file trên 8 MB),
+kế hoạch (TodoWrite / update_plan), tiêu đề slash command, model chưa có giá, đọc tăng dần (dòng bị cắt, file thu nhỏ, file trên 8 MB),
 hai snapshot chạy chồng nhau không đếm đôi, và bảng giá. Khi Claude Code đổi format, thêm một fixture mới vào `test/fixtures/`.
 
 Fixture luôn **viết tay**, không chép từ transcript thật (transcript chứa code và prompt riêng tư). Test chạy thẳng

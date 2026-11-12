@@ -37,6 +37,25 @@ describe('usage', () => {
     assert.equal(state.sessionId, 's-usage')
     assert.equal(state.cwd, '/work/demo')
   })
+
+  test('keeps tokens of a model without a price apart instead of adding $0', async () => {
+    const state = await parseFixture('unpriced.jsonl')
+    const { byModel } = state.usage
+
+    assert.deepEqual(byModel['claude-sonnet-5-5'], { tokens: 110, cost: (100 * 2 + 10 * 10) / 1e6, unpriced: false })
+    assert.deepEqual(byModel['claude-nova-7'], { tokens: 1320, cost: 0, unpriced: true })
+    // A synthetic message is not a model: never flagged, never counted as unpriced.
+    assert.deepEqual(byModel['<synthetic>'], { tokens: 7, cost: 0, unpriced: false })
+    assert.equal(state.usage.unpricedTokens, 1320)
+    close(state.usage.cost, 300 / 1e6)
+    const buckets = [...state.timeline.values()]
+    assert.equal(
+      buckets.reduce((sum, p) => sum + p.unpricedTokens, 0),
+      1320,
+    )
+    // The session model stays the last real one.
+    assert.equal(state.model, 'claude-nova-7')
+  })
 })
 
 describe('tool calls', () => {

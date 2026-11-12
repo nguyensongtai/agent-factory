@@ -1,9 +1,10 @@
 import StatCard from '@/components/ui/StatCard'
 
-import { compact, duration, percent, usd } from '../../domain/format'
+import { compact, duration, percent } from '../../domain/format'
 import { successRate, type Summary } from '../../domain/metrics'
 import { STATUS_COLOR, STATUS_LABEL } from '../../domain/stations'
 import type { AgentSnapshot, AgentStatus, LatencyStats } from '../../domain/types'
+import { CostNote } from '../common/Cost'
 
 const STATUSES: AgentStatus[] = ['working', 'thinking', 'asking', 'idle']
 
@@ -55,8 +56,8 @@ export default function KpiGrid({ summary, agents, latency }: Props) {
         label="Token · chi phí AI"
         value={compact(summary.tokens)}
         accent="#facc15"
-        sub={`≈ ${usd(summary.cost)} theo giá API`}
-        help="Ước tính theo bảng giá API công khai, gồm cả token đọc/ghi cache. Dùng Claude Code bằng gói đăng ký thì không bị tính tiền theo token."
+        sub={<CostNote cost={summary.cost} unpricedTokens={summary.unpricedTokens} />}
+        help="Ước tính theo bảng giá API công khai, gồm cả token đọc/ghi cache. Model chưa có trong bảng giá vẫn được đếm token nhưng không được cộng vào chi phí. Dùng Claude Code bằng gói đăng ký thì không bị tính tiền theo token."
       />
 
       <StatCard

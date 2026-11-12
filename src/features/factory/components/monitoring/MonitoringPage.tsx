@@ -5,9 +5,10 @@ import { useMemo } from 'react'
 import StatCard from '@/components/ui/StatCard'
 import { ErrorBanner, Skeleton } from '@/components/ui/States'
 
-import { compact, duration, percent, usd } from '../../domain/format'
+import { compact, duration, percent } from '../../domain/format'
 import { summarize } from '../../domain/metrics'
 import { useFactory } from '../../context/FactoryProvider'
+import { CostNote } from '../common/Cost'
 import ErrorTracker from './ErrorTracker'
 import HealthPanel from './HealthPanel'
 import PerformanceTable from './PerformanceTable'
@@ -47,7 +48,12 @@ export default function MonitoringPage() {
               accent="#fb7185"
               sub={`${percent(summary.errors, summary.calls)} trên ${summary.calls} lượt tool`}
             />
-            <StatCard label="Token" value={compact(summary.tokens)} accent="#facc15" sub={`≈ ${usd(summary.cost)} theo giá API`} />
+            <StatCard
+              label="Token"
+              value={compact(summary.tokens)}
+              accent="#facc15"
+              sub={<CostNote cost={summary.cost} unpricedTokens={summary.unpricedTokens} />}
+            />
             <StatCard
               label="Cập nhật"
               value={duration(rttMs)}

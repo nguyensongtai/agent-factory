@@ -2,7 +2,7 @@ import 'server-only'
 
 import { open } from 'node:fs/promises'
 
-import { estimateCost } from '../domain/pricing'
+import { estimateCost, isBillableModel } from '../domain/pricing'
 import { stationForTool } from '../domain/stations'
 import type { Mission, PlanItem, Powers, StationId, TimelinePoint, ToolCall, Usage } from '../domain/types'
 import { contentText, describeTool, mcpServer, short, str } from './describe'
@@ -120,7 +120,7 @@ export function createTranscriptState(): TranscriptState {
     toolMsCount: 0,
     powers: { skills: {}, subagents: {}, mcp: {} },
     zones: {},
-    usage: { tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, cost: 0, byModel: {} },
+    usage: { tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, cost: 0, unpricedTokens: 0, byModel: {} },
     lastMessageId: '',
     requests: new Map(),
     latencies: [],
@@ -164,7 +164,7 @@ function bucket(state: TranscriptState, at: number): TimelinePoint {
   const key = Math.floor(at / MINUTE) * MINUTE
   let point = state.timeline.get(key)
   if (!point) {
-    point = { at: key, calls: 0, tokens: 0, errors: 0, cost: 0 }
+    point = { at: key, calls: 0, tokens: 0, errors: 0, cost: 0, unpricedTokens: 0 }
     state.timeline.set(key, point)
     for (const old of state.timeline.keys()) if (old < key - TIMELINE_MS) state.timeline.delete(old)
   }
@@ -280,19 +280,28 @@ function addUsage(state: TranscriptState, model: string, raw: RawUsage, at: numb
     fast: raw.speed === 'fast',
   }
   const tokens = usage.input + usage.output + usage.cacheRead + write5m + write1h
-  const cost = estimateCost(model, usage) ?? 0
+  const price = estimateCost(model, usage)
+  // A model newer than the price table must not pass for free: keep its tokens apart so the UI can say
+  // the total leaves them out.
+  const unpriced = price === null && isBillableModel(model)
+  const cost = price ?? 0
   const totals = state.usage.tokens
   totals.input += usage.input
   totals.output += usage.output
   totals.cacheRead += usage.cacheRead
   totals.cacheWrite += write5m + write1h
   state.usage.cost += cost
-  const perModel = (state.usage.byModel[model] ??= { tokens: 0, cost: 0 })
+  const perModel = (state.usage.byModel[model] ??= { tokens: 0, cost: 0, unpriced: false })
   perModel.tokens += tokens
   perModel.cost += cost
   const point = bucket(state, at)
   point.tokens += tokens
   point.cost += cost
+  if (unpriced) {
+    perModel.unpriced = true
+    state.usage.unpricedTokens += tokens
+    point.unpricedTokens += tokens
+  }
 }
 
 function planItem(raw: unknown): PlanItem {

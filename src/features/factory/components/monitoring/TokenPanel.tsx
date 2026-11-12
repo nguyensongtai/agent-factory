@@ -2,16 +2,20 @@
 
 import AreaChart from '@/components/ui/AreaChart'
 
-import { compact, usd } from '../../domain/format'
+import { compact } from '../../domain/format'
 import type { AgentSnapshot, TimelinePoint } from '../../domain/types'
+import { ModelCost } from '../common/Cost'
 
 export default function TokenPanel({ timeline, agents }: { timeline: TimelinePoint[]; agents: AgentSnapshot[] }) {
-  const byModel: Record<string, { tokens: number; cost: number }> = {}
+  const byModel: Record<string, { tokens: number; cost: number; unpriced: boolean }> = {}
+  let unpricedTokens = 0
   for (const agent of agents) {
+    unpricedTokens += agent.usage.unpricedTokens
     for (const [model, row] of Object.entries(agent.usage.byModel)) {
-      const entry = (byModel[model] ??= { tokens: 0, cost: 0 })
+      const entry = (byModel[model] ??= { tokens: 0, cost: 0, unpriced: false })
       entry.tokens += row.tokens
       entry.cost += row.cost
+      entry.unpriced ||= row.unpriced
     }
   }
   const models = Object.entries(byModel).sort((a, b) => b[1].cost - a[1].cost)
@@ -33,13 +37,20 @@ export default function TokenPanel({ timeline, agents }: { timeline: TimelinePoi
                 <tr key={model} className="border-b border-line last:border-0">
                   <td className="py-1 text-slate-300">{model}</td>
                   <td className="py-1 text-right text-slate-200 tabular-nums">{compact(row.tokens)}</td>
-                  <td className="py-1 text-right text-slate-400 tabular-nums">{usd(row.cost)}</td>
+                  <td className="py-1 text-right text-slate-400 tabular-nums">
+                    <ModelCost cost={row.cost} unpriced={row.unpriced} />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
         <p className="mt-2 text-xs text-slate-500">Chi phí ước tính theo giá API công khai; gói đăng ký Claude Code không tính theo token.</p>
+        {unpricedTokens > 0 && (
+          <p className="mt-1 text-xs text-amber-300">
+            Tổng chi phí chưa gồm {compact(unpricedTokens)} token của model chưa có giá.
+          </p>
+        )}
       </div>
     </section>
   )

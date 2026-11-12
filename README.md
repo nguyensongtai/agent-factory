@@ -141,6 +141,8 @@ tên miền khác sẽ bị chặn (xem mục bên dưới). Hãy dùng một tr
 - Nhiệm vụ tự tạo nằm trong `.data/missions.json` (đã git-ignore). Làng không tự chạy agent: “Chép lệnh” chỉ chép
   lệnh `claude` để bạn tự dán vào terminal.
 - Chi phí hiển thị là **ước tính theo giá API công khai**. Dùng Claude Code bằng gói đăng ký thì không bị tính tiền theo token.
+  Bảng giá nằm cố định trong `src/features/factory/domain/pricing.ts`: model mới chưa có trong bảng sẽ hiện “chưa có
+  giá” và tổng chi phí ghi rõ là chưa gồm token của model đó. Thêm giá vào bảng để tính đủ.
 
 ## Tìm hiểu thêm
 
