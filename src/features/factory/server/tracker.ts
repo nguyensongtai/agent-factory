@@ -91,9 +91,10 @@ async function refresh<T extends Tracked>(map: Map<string, T>, file: string, ini
   const tracked = map.get(file) ?? init()
   map.set(file, tracked)
   if (info.size !== tracked.size || info.mtimeMs !== tracked.mtime) {
+    await advanceTranscript(tracked.state, file, info.size)
+    // Only after a successful read, so a failed one is retried on the next poll.
     tracked.size = info.size
     tracked.mtime = info.mtimeMs
-    await advanceTranscript(tracked.state, file, info.size)
   }
 
   return tracked
@@ -325,7 +326,19 @@ async function agentSnapshot(file: string, now: number): Promise<{ agent: AgentS
   }
 }
 
-export async function getFactorySnapshot(): Promise<FactorySnapshot> {
+let inFlight: Promise<FactorySnapshot> | null = null
+
+// Every open tab polls on its own timer. Overlapping calls share one scan: two concurrent scans would
+// both read a transcript from the same offset and apply its new lines twice (tokens, cost, tool counts).
+export function getFactorySnapshot(): Promise<FactorySnapshot> {
+  inFlight ??= buildSnapshot().finally(() => {
+    inFlight = null
+  })
+
+  return inFlight
+}
+
+async function buildSnapshot(): Promise<FactorySnapshot> {
   const begin = performance.now()
   const now = Date.now()
   if (now - lastScanAt > RESCAN_MS) {
